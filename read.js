@@ -16,20 +16,26 @@ function createReader(db, options) {
 
   var iterator = db.iterator(options)
 
-  function _read(next) {
+  function _read(n) {
+    // ignore n for now
+
+    var self = this
     iterator.next(function (err, key, value) {
       if (err) {
         iterator.end(noop)
-        return next(err)
+        self.emit("error", err)
+        return
       }
       if (key == null && value == null) {
         iterator.end(noop)
-        return next(null)
+        self.push(null)
+        return
       }
 
       var record = multibuffer.pack([key, value])
-      return next(err, record)
+      self.push(record)
     })
   }
+
   return spigot(_read)
 }

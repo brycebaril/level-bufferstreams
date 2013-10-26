@@ -1,0 +1,28 @@
+{
+  "name": "level-bufferstreams",
+  "version": "0.0.0",
+  "description": "Pure buffer (multibuffer) streams for leveldb. Faster/less memory overhead than the default streams, useful for bulk operations.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "multibuffer": "~2.0.0",
+    "stream-spigot": "~3.0.1",
+    "terminus": "~1.0.3",
+    "through2": "~0.2.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test/"
+  },
+  "keywords": [
+    "levelup",
+    "leveldown",
+    "buffers",
+    "multibuffers",
+    "streams"
+  ],
+  "author": "Bryce B. Baril",
+  "license": "MIT"
+}
