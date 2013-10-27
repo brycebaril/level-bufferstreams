@@ -27,5 +27,12 @@
     "streams"
   ],
   "author": "Bryce B. Baril",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/brycebaril/level-bufferstreams.git"
+  },
+  "bugs": {
+    "url": "https://github.com/brycebaril/level-bufferstreams/issues"
+  }
 }
