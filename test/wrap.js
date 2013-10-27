@@ -5,7 +5,7 @@ var terminus = require("terminus")
 var multibuffer = require("multibuffer")
 var bufstream = require("../")
 
-var db1, db2, bs1, bs2
+var db1, db2
 
 test("setup", function (t) {
   db1 = level("source")()
