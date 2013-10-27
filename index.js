@@ -1,7 +1,6 @@
 module.exports = BufStream
 module.exports.rawReader = rawReader
 module.exports.rawWriter = rawWriter
-module.exports.replicate = replicate
 
 var Read = require("./read")
 var Write = require("./write")
@@ -79,10 +78,4 @@ function rawReader(path, options) {
 
 function rawWriter(path, options) {
   return BufStream(path, options).rawWriter(options)
-}
-
-function replicate(source, target, options) {
-  if (options == null) options = {}
-  //options.reverse = true
-  return rawReader(source, options).pipe(rawWriter(target, options))
 }
