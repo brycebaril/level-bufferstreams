@@ -28,6 +28,14 @@ function createWriter(db, hint) {
 
   function _flush(callback) {
     var b = db.batch()
+    if (!batch.length) {
+      // Nothing to write, asyncly call callback()
+      setImmediate(function () {
+        callback()
+      })
+      return
+    }
+
     for (var i = 0; i < batch.length; i++) {
       var kv = multibuffer.unpack(batch[i])
       b.put(kv[0], kv[1], {sync: sync})
@@ -52,6 +60,7 @@ function createWriter(db, hint) {
     if (batchSize && batch.length >= batchSize)
       return _flush.call(this, callback)
     if (!batchSize && batchBytes + avgBatchBytes >= writeBufferBytes)
+      // If average batch size will put it past the requested buffer size, segment here.
       return _flush.call(this, callback)
     return callback()
   }
