@@ -4,8 +4,6 @@ var multibuffer = require("multibuffer")
 var spigot = require("stream-spigot")
 function noop () {}
 
-// TODO check if open?
-
 /**
  * Create a stream instance that streams data out of a level instance as multibuffers
  * @param {LevelDOWN} db      A LevelDOWN instance
