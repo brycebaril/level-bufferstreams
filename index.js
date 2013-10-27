@@ -1,89 +1,88 @@
 module.exports = BufStream
-module.exports.read = read
-module.exports.write = write
+module.exports.rawReader = rawReader
+module.exports.rawWriter = rawWriter
 module.exports.replicate = replicate
 
 var Read = require("./read")
 var Write = require("./write")
 var through2 = require("through2")
 
-function noop() {}
-
 /**
- * Open a LevelDOWN interface on a database for read or write streaming.
- * @param {string or LevelUP instance} path    Either the path to the database, or a LevelUp instance.
+ * Return an object that provides read and write streams to a LevelUP instance. Streams multibuffers of key/value pairs.
+ * @param {LevelUP instance} lvlup    A LevelUp instance.
  * @param {object} options Options to send to LevelDOWN when opening or creating the database.
  */
-function BufStream(path, options) {
-  if (!(this instanceof BufStream)) return new BufStream(path, options)
-  if (options == null) options = {}
+function BufStream(lvlup) {
+  if (!(this instanceof BufStream)) return new BufStream(lvlup)
 
   this.pending = []
   this.open = false
 
-  if (typeof path == "object" && path.db) {
-    if (path.isOpen()) {
-      this.db = path.db
+  if (typeof lvlup == "object" && lvlup.db) {
+    if (lvlup.isOpen()) {
+      this.db = lvlup.db
       this.open = true
     }
     else
-      path.once("ready", this._go.bind(this, path))
-  }
-  else if (options.db) {
-    var db = options.db(path)
-    db.open(options, this._go.bind(this, db))
+      lvlup.once("ready", this._go.bind(this, lvlup))
   }
   else
-    throw new Error("You must either provide a levelup instance or a levelDOWN interface")
+    throw new Error("Please provide a LevelUP instance")
 }
-BufStream.prototype._go = function (path) {
+BufStream.prototype._go = function (lvlup) {
   this.open = true
-  this.db = path.db
-  var self = this
-  this.pending.forEach(function (operation) {
-    if (operation[0] == "read")
-      self.read(operation[1]).pipe(operation[2])
-    else if (operation[0] == "write")
-      operation[2].pipe(self.write(operation[1]))
-  })
+  this.db = lvlup.db
+  for (var i = 0; i < this.pending.length; i++) {
+    var operation = this.pending[i]
+    if (operation.mode == "read")
+      this.rawReader(operation.options).pipe(operation.promise)
+    else if (operation.mode == "write") {
+      // forward stats event on promise
+      var ws = this.rawWriter(operation.options)
+      ws.on("stats", function (stats) {
+        operation.promise.emit("stats", stats)
+      })
+      operation.promise.pipe(ws)
+    }
+  }
 }
 /**
  * Create a read stream that will stream multibuffers
  * @param  {object} options Range options (start, end, reverse, limit)
  * @return {ReadableSrteam}         A ReadableStream that streams records as multibuffers
  */
-BufStream.prototype.read = function (options) {
+BufStream.prototype.rawReader = function (options) {
   if (this.open) {
     return Read(this.db, options)
   }
   var promise = through2()
-  this.pending.push(["read", options, promise])
+  this.pending.push({mode: "read", options: options, promise: promise})
   return promise
 }
 /**
  * Create a write stream that will accept multibuffers and write them to the db
- * @param  {object} hint hint for batch size
+ * @param  {object} hint Hint for batch size
  * @return {WritableStream}      A WritableStream that will accept multibuffers and write them.
  */
-BufStream.prototype.write = function (hint) {
+BufStream.prototype.rawWriter = function (hint) {
   if (this.open) {
     return Write(this.db, hint)
   }
   var promise = through2()
-  this.pending.push(["write", hint, promise])
+  this.pending.push({mode: "write", options: hint, promise: promise})
   return promise
 }
 
-function read(path, options) {
-  return BufStream(path, options).read(options)
+function rawReader(path, options) {
+  return BufStream(path, options).rawReader(options)
 }
 
-function write(path, options) {
-  return BufStream(path, options).write(options)
+function rawWriter(path, options) {
+  return BufStream(path, options).rawWriter(options)
 }
 
 function replicate(source, target, options) {
   if (options == null) options = {}
   //options.reverse = true
-  return read(source, options).pipe(write(target, options))
+  return rawReader(source, options).pipe(rawWriter(target, options))
 }

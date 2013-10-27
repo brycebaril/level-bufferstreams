@@ -9,10 +9,13 @@
   "dependencies": {
     "multibuffer": "~2.0.0",
     "stream-spigot": "~3.0.1",
-    "terminus": "~1.0.3",
+    "terminus": "~1.0.4",
     "through2": "~0.2.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "tape": "~2.1.0",
+    "level-test": "~1.5.2"
+  },
   "scripts": {
     "test": "node test/"
   },

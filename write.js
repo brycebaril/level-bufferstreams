@@ -10,7 +10,7 @@ var DEFAULT_WRITE_BUFFER = 4 * 1024 * 1024
 /**
  * Create a Writable Stream that accepts multibuffers and writes them to the level instance.
  * @param {LevelDOWN} db   A levelDOWN instance
- * @param {Object} hint An optional set of hints to tweak performance. (sync, batchSize, writeBufferMB)
+ * @param {Object} hint An optional set of hints to tweak performance. (sync, batchSize, writeBufferBytes)
  */
 function createWriter(db, hint) {
   if (hint == null)
@@ -18,12 +18,13 @@ function createWriter(db, hint) {
 
   var batchSize = hint.batchSize
   var sync = hint.sync || false
-  var writeBufferMB = hint.writeBufferMB || DEFAULT_WRITE_BUFFER
+  var writeBufferBytes = hint.writeBufferBytes || DEFAULT_WRITE_BUFFER
 
   var batch = []
   var batchBytes = 0
-  var avgBatchMB = 0
+  var avgBatchBytes = 0
   var chunkCount = 0
+  var batchCount = 0
 
   function _flush(callback) {
     var b = db.batch()
@@ -36,6 +37,7 @@ function createWriter(db, hint) {
       if (err) return callback(err)
       batch = []
       batchBytes = 0
+      batchCount++
       return callback()
     })
   }
@@ -45,11 +47,11 @@ function createWriter(db, hint) {
 
     chunkCount++
     batchBytes += chunk.length
-    avgBatchMB = avgBatchMB - (avgBatchMB - chunk.length) / chunkCount
+    avgBatchBytes = avgBatchBytes - (avgBatchBytes - chunk.length) / chunkCount
 
     if (batchSize && batch.length >= batchSize)
       return _flush.call(this, callback)
-    if (!batchSize && batchBytes + avgBatchMB >= writeBufferMB)
+    if (!batchSize && batchBytes + avgBatchBytes >= writeBufferBytes)
       return _flush.call(this, callback)
     return callback()
   }
@@ -57,7 +59,7 @@ function createWriter(db, hint) {
   var writer = terminus(_write)
   writer.on("finish", _flush.bind(writer, function (err) {
     if (err) return writer.emit("error", err)
-    writer.emit("done", {chunks: chunkCount, avgBatchMB: avgBatchMB})
+    writer.emit("stats", {chunks: chunkCount, avgBatchBytes: avgBatchBytes, batches: batchCount})
   }))
 
   return writer
