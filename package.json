@@ -7,14 +7,14 @@
     "test": "test"
   },
   "dependencies": {
-    "multibuffer": "~2.0.0",
-    "stream-spigot": "~3.0.1",
-    "terminus": "~1.0.4",
-    "through2": "~0.2.3"
+    "multibuffer": "~2.2.1",
+    "stream-spigot": "~3.0.3",
+    "terminus": "~1.0.9",
+    "through2": "~0.4.1"
   },
   "devDependencies": {
-    "tape": "~2.1.0",
-    "level-test": "~1.5.2"
+    "tape": "~2.4.0",
+    "level-test": "~1.6.1"
   },
   "scripts": {
     "test": "node test/"
