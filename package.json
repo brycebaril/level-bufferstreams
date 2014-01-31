@@ -1,6 +1,6 @@
 {
   "name": "level-bufferstreams",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pure buffer (multibuffer) streams for leveldb. Faster/less memory overhead than the default streams, useful for bulk operations.",
   "main": "index.js",
   "directories": {
